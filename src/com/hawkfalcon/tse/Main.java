@@ -19,12 +19,9 @@ public class Main extends JavaPlugin implements Listener {
 
 	HashMap<Egg, EntityType> eggs = new HashMap<Egg, EntityType>();
 
-	public void onDisable(){}
-
 	public void onEnable(){
 		getServer().getPluginManager().registerEvents(this, this);
 	}
-
 
 	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent event) {
@@ -34,7 +31,7 @@ public class Main extends JavaPlugin implements Listener {
 			if ((event.getAction().equals(Action.RIGHT_CLICK_AIR)) || (event.getAction().equals(Action.RIGHT_CLICK_BLOCK))){
 					if (item != null) {
 						if (!(item.getData() instanceof SpawnEgg)) return;
-						Egg egg = (Egg)event.getPlayer().launchProjectile(Egg.class);
+						Egg egg = event.getPlayer().launchProjectile(Egg.class);
 						SpawnEgg segg = (SpawnEgg)item.getData();
 						this.eggs.put(egg, segg.getSpawnedType());
 						if (event.getPlayer().getGameMode().equals(GameMode.SURVIVAL)) {
@@ -57,8 +54,9 @@ public class Main extends JavaPlugin implements Listener {
 	public void throwEgg(PlayerEggThrowEvent event) { 
 		Egg egg = event.getEgg();
 		if (this.eggs.containsKey(egg)) {
-		EntityType entity = (EntityType)this.eggs.get(egg);
+		EntityType entity = this.eggs.get(egg);
 		egg.getWorld().spawnEntity(egg.getLocation(), entity);
+		event.setHatching(false);
 		}
 	}
 }
