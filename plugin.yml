@@ -1,6 +1,0 @@
-name: ThrowableSpawnEggs
-version: 2.1
-main: com.hawkfalcon.tse.Main
-permissions:
-    tse.use:
-        default: true
