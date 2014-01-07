@@ -4,7 +4,7 @@
     <groupId>com.hawkfalcon</groupId>
     <artifactId>ThrowableSpawnEggs</artifactId>
     <name>ThrowableSpawnEggs</name>
-    <version>2.4</version>
+    <version>2.5</version>
     <build>
         <defaultGoal>clean package install</defaultGoal>
         <finalName>ThrowableSpawnEggs</finalName>
@@ -51,7 +51,7 @@
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
-            <version>1.6.4-R0.1-SNAPSHOT</version>
+            <version>1.7.2-R0.3-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <repositories>
