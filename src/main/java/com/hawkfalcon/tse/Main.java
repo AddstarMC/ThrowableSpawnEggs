@@ -28,6 +28,7 @@ public class Main extends JavaPlugin implements Listener {
         Player player = event.getPlayer();
         if (player.hasPermission("tse.use")) {
             if ((event.getAction().equals(Action.RIGHT_CLICK_AIR)) || (event.getAction().equals(Action.RIGHT_CLICK_BLOCK))) {
+                if (event.getItem() == null) return;
                 ItemStack item = event.getItem();
                 if (!(item.getData() instanceof SpawnEgg) || item == null) return;
                 SpawnEgg segg = (SpawnEgg) item.getData();
