@@ -14,19 +14,16 @@ import org.bukkit.material.SpawnEgg;
 
 import java.util.HashMap;
 
-/**
- * Created by Nick on 5/30/14.
- */
-
-public class ListenerStuff implements Listener{
+public class ListenerStuff implements Listener {
     private Main plugin;
 
     HashMap<Egg, EntityType> eggs = new HashMap<Egg, EntityType>();
 
 
-    public ListenerStuff(Main instance){
+    public ListenerStuff(Main instance) {
         plugin = instance;
     }
+
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
@@ -34,7 +31,7 @@ public class ListenerStuff implements Listener{
             if ((event.getAction().equals(Action.RIGHT_CLICK_AIR)) || (event.getAction().equals(Action.RIGHT_CLICK_BLOCK))) {
                 if (event.getItem() == null) return;
                 ItemStack item = event.getItem();
-                if (!(item.getData() instanceof SpawnEgg) || item == null) return;
+                if (!(item.getData() instanceof SpawnEgg)) return;
                 SpawnEgg segg = (SpawnEgg) item.getData();
                 if (plugin.getConfig().getBoolean("blacklist")) {
                     if (plugin.getConfig().getStringList("blacklisted").contains(segg.getSpawnedType().toString().toLowerCase()))

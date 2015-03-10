@@ -1,5 +1,5 @@
 name: ThrowableSpawnEggs
-version: 2.5.2
+version: 2.6
 main: com.hawkfalcon.tse.Main
 permissions:
     tse.use:
