@@ -1,6 +1,7 @@
 name: ThrowableSpawnEggs
 version: 2.6
 main: com.hawkfalcon.tse.Main
+authors: [hawkfalcon, SirNickParks]
 permissions:
     tse.use:
         default: true
