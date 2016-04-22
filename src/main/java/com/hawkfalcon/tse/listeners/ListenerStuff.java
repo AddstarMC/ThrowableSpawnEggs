@@ -2,6 +2,7 @@ package com.hawkfalcon.tse.listeners;
 
 import au.com.addstar.monolith.util.NBTItem;
 import com.hawkfalcon.tse.Main;
+import com.hawkfalcon.tse.objects.ThrownEgg;
 import org.bukkit.DyeColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.*;
@@ -19,7 +20,7 @@ import java.util.HashMap;
 public class ListenerStuff implements Listener {
     private Main plugin;
 
-    HashMap<Egg, EggType> eggs = new HashMap<Egg, EggType>();
+    HashMap<Egg, ThrownEgg> eggs = new HashMap<Egg, ThrownEgg>();
 
 
 
@@ -45,7 +46,7 @@ public class ListenerStuff implements Listener {
                         return;
                 }
                 Egg egg = event.getPlayer().launchProjectile(Egg.class);
-                EggType eType = new EggType(mob,mobType);
+                ThrownEgg eType = new ThrownEgg(mob,mobType);
                 eggs.put(egg, eType);
                 GameMode gm = event.getPlayer().getGameMode();
                 if (gm.equals(GameMode.SURVIVAL) || gm == GameMode.ADVENTURE) {
@@ -64,7 +65,7 @@ public class ListenerStuff implements Listener {
     public void throwEgg(PlayerEggThrowEvent event) {
         Egg egg = event.getEgg();
         if (eggs.containsKey(egg)) {
-            EggType eType = eggs.get(egg);
+            ThrownEgg eType = eggs.get(egg);
             EntityType type = EntityType.fromName(eType.getType());
             Entity entity = egg.getWorld().spawnEntity(egg.getLocation(), type);
             if (eType.getType().equals("EntityHorse")) {
@@ -81,23 +82,4 @@ public class ListenerStuff implements Listener {
             event.setHatching(false);
         }
     }
-
-    private class EggType{
-        private String type;
-        private String variant;
-
-        EggType(String type, String variant){
-            this.type = type;
-            this.variant=variant;
-        }
-
-        String getType() {
-            return type;
-        }
-
-        String getMobVariant() {
-            return variant;
-        }
-    }
-
 }
