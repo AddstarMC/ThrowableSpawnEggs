@@ -1,11 +1,16 @@
 package com.hawkfalcon.tse.listeners;
 
-import au.com.addstar.monolith.util.NBTItem;
+import au.com.addstar.monolith.MonoSpawnEgg;
 import com.hawkfalcon.tse.Main;
-import com.hawkfalcon.tse.objects.ThrownEgg;
 import org.bukkit.DyeColor;
 import org.bukkit.GameMode;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Egg;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Horse;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Sheep;
+import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -15,18 +20,24 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.SpawnEgg;
 
 import java.util.HashMap;
+import java.util.List;
 
 
 public class ListenerStuff implements Listener {
     private Main plugin;
 
-    HashMap<Egg, ThrownEgg> eggs = new HashMap<Egg, ThrownEgg>();
+    private boolean blackListOn;
+    private List<String> blackList;
+
+    HashMap<Egg, MonoSpawnEgg> eggs = new HashMap<Egg, MonoSpawnEgg>();
 
 
 
 
     public ListenerStuff(Main instance) {
         plugin = instance;
+        this.blackListOn = plugin.getConfig().getBoolean("blacklist");
+        this.blackList = plugin.getConfig().getStringList("blacklisted");
     }
 
     @EventHandler
@@ -37,26 +48,30 @@ public class ListenerStuff implements Listener {
                 if (event.getItem() == null) return;
                 ItemStack item = event.getItem();
                 if (!(item.getData() instanceof SpawnEgg)) return;
-                SpawnEgg segg = (SpawnEgg) item.getData();
-                NBTItem nbtItem = new NBTItem(segg.toItemStack());
-                String mob = nbtItem.getString("mob");
-                String mobType = null;
-                if (plugin.getConfig().getBoolean("blacklist")) {
-                    if (plugin.getConfig().getStringList("blacklisted").contains(mobType.toLowerCase()))
-                        return;
+                MonoSpawnEgg megg = new MonoSpawnEgg(item);
+                EntityType spawnType = EntityType.CHICKEN;
+                try {
+                    spawnType = megg.getMonoSpawnedType();
+                }catch (Exception e){
+                    e.printStackTrace();
                 }
-                Egg egg = event.getPlayer().launchProjectile(Egg.class);
-                ThrownEgg eType = new ThrownEgg(mob,mobType);
-                eggs.put(egg, eType);
-                GameMode gm = event.getPlayer().getGameMode();
-                if (gm.equals(GameMode.SURVIVAL) || gm == GameMode.ADVENTURE) {
-                    if (item.getAmount() > 1) {
-                        item.setAmount(item.getAmount() - 1);
-                    } else {
-                        player.getInventory().remove(item);
+                if (blackListOn) {
+                    if (blackList.contains(spawnType.toString().toLowerCase())) {
+                        spawnType = EntityType.CHICKEN;
                     }
+                    Egg egg = event.getPlayer().launchProjectile(Egg.class);
+                    megg.setMonoSpawnedType(spawnType);
+                    eggs.put(egg, megg);
+                    GameMode gm = event.getPlayer().getGameMode();
+                    if (gm.equals(GameMode.SURVIVAL) || gm == GameMode.ADVENTURE) {
+                        if (item.getAmount() > 1) {
+                            item.setAmount(item.getAmount() - 1);
+                        } else {
+                            player.getInventory().remove(item);
+                        }
+                    }
+                    event.setCancelled(true);
                 }
-                event.setCancelled(true);
             }
         }
     }
@@ -65,17 +80,27 @@ public class ListenerStuff implements Listener {
     public void throwEgg(PlayerEggThrowEvent event) {
         Egg egg = event.getEgg();
         if (eggs.containsKey(egg)) {
-            ThrownEgg eType = eggs.get(egg);
-            EntityType type = EntityType.fromName(eType.getType());
+            MonoSpawnEgg megg = eggs.get(egg);
+            eggs.remove(egg);
+            EntityType type;
+            if (megg.getMonoSpawnedType() ==  null){
+                 type = EntityType.CHICKEN;
+            } else {
+                type = megg.getMonoSpawnedType();
+            }
             Entity entity = egg.getWorld().spawnEntity(egg.getLocation(), type);
-            if (eType.getType().equals("EntityHorse")) {
+            if(megg.isCustomNameVisible() && megg.getCustomName() != null){
+                entity.setCustomName(megg.getCustomName());
+                entity.setCustomNameVisible(true);
+            }
+            if (entity.getType().equals("EntityHorse")) {
                 Horse horse = (Horse) entity;
                 horse.setStyle(Horse.Style.values()[(int) (Math.random() * (Horse.Style.values().length))]);
                 horse.setColor(Horse.Color.values()[(int) (Math.random() * (Horse.Color.values().length))]);
-            } else if (eType.getType().equals("Sheep")) {
+            } else if (entity.getType().equals("Sheep")) {
                 if (!plugin.getConfig().getBoolean("coloredsheep")) return;
                 ((Sheep) entity).setColor(DyeColor.values()[(int) (Math.random() * (DyeColor.values().length))]);
-            } else if (eType.getType().equals("Villager")) {
+            } else if (entity.getType().equals("Villager")) {
                 Villager villager = (Villager) entity;
                 villager.setProfession(Villager.Profession.values()[(int) (Math.random() * (Villager.Profession.values().length))]);
             }
