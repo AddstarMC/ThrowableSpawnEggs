@@ -2,15 +2,11 @@ package com.hawkfalcon.tse.listeners;
 
 import au.com.addstar.monolith.MonoSpawnEgg;
 import com.hawkfalcon.tse.Main;
-import org.bukkit.DyeColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Egg;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Sheep;
-import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -49,18 +45,21 @@ public class ListenerStuff implements Listener {
                 ItemStack item = event.getItem();
                 if (!(item.getData() instanceof SpawnEgg)) return;
                 MonoSpawnEgg megg = new MonoSpawnEgg(item);
-                EntityType spawnType = EntityType.CHICKEN;
+                EntityType spawnType;
                 try {
                     spawnType = megg.getMonoSpawnedType();
                 }catch (Exception e){
                     e.printStackTrace();
+                    spawnType = EntityType.CHICKEN;
                 }
-                if (blackListOn) {
-                    if (blackList.contains(spawnType.toString().toLowerCase())) {
+                if(spawnType == null)return;
+                if (blackListOn && blackList.size() > 0 ) {
+                    if (blackList.contains(spawnType.getName().toLowerCase())) {
                         spawnType = EntityType.CHICKEN;
+                        megg.setMonoSpawnedType(spawnType);
                     }
                     Egg egg = event.getPlayer().launchProjectile(Egg.class);
-                    megg.setMonoSpawnedType(spawnType);
+
                     eggs.put(egg, megg);
                     GameMode gm = event.getPlayer().getGameMode();
                     if (gm.equals(GameMode.SURVIVAL) || gm == GameMode.ADVENTURE) {
@@ -75,35 +74,48 @@ public class ListenerStuff implements Listener {
             }
         }
     }
-
+    //todo Allow eggs to be updated with complete entity.
+    /*@EventHandler
+    public void updateEgg(PlayerInteractEntityEvent event){
+        Player player = event.getPlayer();
+        if (!player.hasPermission("tse.update")) {
+            player.sendMessage("No Permission");
+            return;
+        }
+       ItemStack item =  event.getPlayer().getInventory().getItemInMainHand();
+        if(item.getData() instanceof SpawnEgg){
+            MonoSpawnEgg mEgg = new MonoSpawnEgg(item);
+            if (mEgg.getMonoSpawnedType() == null){
+                Entity entity = event.getRightClicked();
+                if(entity != null) {
+                    if (mEgg.(entity)) {
+                        ItemStack newEgg = mEgg.toItemStack();
+                        newEgg.getItemMeta().setDisplayName("Custom Spawn Egg");
+                        player.getInventory().setItemInMainHand(mEgg.());
+                        player.sendMessage("Your egg has been updated!!!");
+                        entity.remove();
+                        player.playSound(player.getLocation(), Sound.BLOCK_IRON_DOOR_CLOSE, (float) 5.0, (float) 1.0);
+                    }
+                    player.sendMessage("update is false");
+                }
+                player.sendMessage("entity is null");
+            }
+            player.sendMessage("Egg isnt blank");
+        }
+        player.sendMessage("Not an egg");
+    }*/
+//todo Spawn complete entity not just the type.
     @EventHandler
     public void throwEgg(PlayerEggThrowEvent event) {
         Egg egg = event.getEgg();
         if (eggs.containsKey(egg)) {
-            MonoSpawnEgg megg = eggs.get(egg);
+            MonoSpawnEgg mEgg = eggs.get(egg);
+            egg.getLocation();
+            Entity spawn = egg.getWorld().spawnEntity(egg.getLocation(), mEgg.getMonoSpawnedType());
+            if (spawn == null)event.getPlayer().sendMessage("Spawning Error");
+            if(mEgg.getCustomName() != null) spawn.setCustomName(mEgg.getCustomName());
+            spawn.setCustomNameVisible(mEgg.isCustomNameVisible());
             eggs.remove(egg);
-            EntityType type;
-            if (megg.getMonoSpawnedType() ==  null){
-                 type = EntityType.CHICKEN;
-            } else {
-                type = megg.getMonoSpawnedType();
-            }
-            Entity entity = egg.getWorld().spawnEntity(egg.getLocation(), type);
-            if(megg.isCustomNameVisible() && megg.getCustomName() != null){
-                entity.setCustomName(megg.getCustomName());
-                entity.setCustomNameVisible(true);
-            }
-            if (entity.getType().equals("EntityHorse")) {
-                Horse horse = (Horse) entity;
-                horse.setStyle(Horse.Style.values()[(int) (Math.random() * (Horse.Style.values().length))]);
-                horse.setColor(Horse.Color.values()[(int) (Math.random() * (Horse.Color.values().length))]);
-            } else if (entity.getType().equals("Sheep")) {
-                if (!plugin.getConfig().getBoolean("coloredsheep")) return;
-                ((Sheep) entity).setColor(DyeColor.values()[(int) (Math.random() * (DyeColor.values().length))]);
-            } else if (entity.getType().equals("Villager")) {
-                Villager villager = (Villager) entity;
-                villager.setProfession(Villager.Profession.values()[(int) (Math.random() * (Villager.Profession.values().length))]);
-            }
             event.setHatching(false);
         }
     }
