@@ -8,6 +8,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerEggThrowEvent;
@@ -36,7 +37,7 @@ public class ListenerStuff implements Listener {
         this.blackList = plugin.getConfig().getStringList("blacklisted");
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         if (player.hasPermission("tse.use")) {
@@ -44,35 +45,38 @@ public class ListenerStuff implements Listener {
                 if (event.getItem() == null) return;
                 ItemStack item = event.getItem();
                 if (!(item.getData() instanceof SpawnEgg)) return;
-                MonoSpawnEgg megg = new MonoSpawnEgg(item);
+                MonoSpawnEgg mEgg = new MonoSpawnEgg(item);
                 EntityType spawnType;
                 try {
-                    spawnType = megg.getMonoSpawnedType();
-                }catch (Exception e){
+                    spawnType = mEgg.getMonoSpawnedType();
+                } catch (Exception e) {
                     e.printStackTrace();
                     spawnType = EntityType.CHICKEN;
                 }
-                if(spawnType == null)return;
-                if (blackListOn && blackList.size() > 0 ) {
+                if (spawnType == null) return;
+                if (blackListOn && blackList.size() > 0) {
                     if (blackList.contains(spawnType.getName().toLowerCase())) {
                         spawnType = EntityType.CHICKEN;
-                        megg.setMonoSpawnedType(spawnType);
+                        mEgg.setMonoSpawnedType(spawnType);
                     }
-                    Egg egg = event.getPlayer().launchProjectile(Egg.class);
-
-                    eggs.put(egg, megg);
-                    GameMode gm = event.getPlayer().getGameMode();
-                    if (gm.equals(GameMode.SURVIVAL) || gm == GameMode.ADVENTURE) {
-                        if (item.getAmount() > 1) {
-                            item.setAmount(item.getAmount() - 1);
-                        } else {
-                            player.getInventory().remove(item);
-                        }
-                    }
-                    event.setCancelled(true);
                 }
+                Egg egg = event.getPlayer().launchProjectile(Egg.class);
+                eggs.put(egg, mEgg);
+                GameMode gm = event.getPlayer().getGameMode();
+                if (gm.equals(GameMode.SURVIVAL) || gm == GameMode.ADVENTURE) {
+                    if (item.getAmount() > 1) {
+                        item.setAmount(item.getAmount() - 1);
+                    } else {
+                        player.getInventory().remove(item);
+                    }
+                }
+                event.setCancelled(true);
+                return;
             }
+            return;
         }
+        event.getPlayer().sendMessage("No Permission to throw eggs");
+        return;
     }
     //todo Allow eggs to be updated with complete entity.
     /*@EventHandler
@@ -105,7 +109,7 @@ public class ListenerStuff implements Listener {
         player.sendMessage("Not an egg");
     }*/
 //todo Spawn complete entity not just the type.
-    @EventHandler
+    @EventHandler()
     public void throwEgg(PlayerEggThrowEvent event) {
         Egg egg = event.getEgg();
         if (eggs.containsKey(egg)) {
