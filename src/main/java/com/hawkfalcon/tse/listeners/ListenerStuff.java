@@ -1,8 +1,11 @@
 package com.hawkfalcon.tse.listeners;
 
 import au.com.addstar.monolith.MonoSpawnEgg;
+
 import com.hawkfalcon.tse.Main;
+
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.entity.Egg;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -16,9 +19,11 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.SpawnEgg;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-
+import java.util.Set;
 
 public class ListenerStuff implements Listener {
     private Main plugin;
@@ -28,8 +33,23 @@ public class ListenerStuff implements Listener {
 
     HashMap<Egg, MonoSpawnEgg> eggs = new HashMap<Egg, MonoSpawnEgg>();
 
-
-
+    static final Set<Material> MainHandIgnore = new HashSet<Material>(
+    	Arrays.asList(new Material[] {
+	    	Material.WOOD_SWORD,
+	    	Material.STONE_SWORD,
+	    	Material.IRON_SWORD,
+	    	Material.DIAMOND_SWORD,
+	    	Material.WOOD_AXE,
+	    	Material.STONE_AXE,
+	    	Material.IRON_AXE,
+	    	Material.DIAMOND_AXE,
+	    	Material.WOOD_PICKAXE,
+	    	Material.STONE_PICKAXE,
+	    	Material.IRON_PICKAXE,
+	    	Material.DIAMOND_PICKAXE,
+	    	Material.IRON_INGOT,
+	    	Material.GOLD_INGOT
+	    }));
 
     public ListenerStuff(Main instance) {
         plugin = instance;
@@ -42,9 +62,18 @@ public class ListenerStuff implements Listener {
         Player player = event.getPlayer();
         if (player.hasPermission("tse.use")) {
             if ((event.getAction().equals(Action.RIGHT_CLICK_AIR)) || (event.getAction().equals(Action.RIGHT_CLICK_BLOCK))) {
-                if (event.getItem() == null) return;
-                ItemStack item = event.getItem();
+            	// Decide which item to use (prefer main hand over off hand)
+            	// We ignore certain items in main hand and use off hand instead
+            	boolean useMainHand = true;
+            	ItemStack item = player.getInventory().getItemInMainHand();
+            	if ((item == null) || (item.getType() == Material.AIR) || (MainHandIgnore.contains(item))) {
+            		item = player.getInventory().getItemInOffHand();
+            		useMainHand = false;
+            	}
+            	if ((item == null) || (item.getType() == Material.AIR)) return;
                 if (!(item.getData() instanceof SpawnEgg)) return;
+
+                // Prepare and launch the egg
                 MonoSpawnEgg mEgg = new MonoSpawnEgg(item);
                 EntityType spawnType;
                 try {
@@ -62,12 +91,20 @@ public class ListenerStuff implements Listener {
                 }
                 Egg egg = event.getPlayer().launchProjectile(Egg.class);
                 eggs.put(egg, mEgg);
+
+                // Deplete the relevant item stack
                 GameMode gm = event.getPlayer().getGameMode();
                 if (gm.equals(GameMode.SURVIVAL) || gm == GameMode.ADVENTURE) {
                     if (item.getAmount() > 1) {
+                    	// Decrement the item stack quantity
                         item.setAmount(item.getAmount() - 1);
                     } else {
-                        player.getInventory().remove(item);
+                    	// Spawn egg is depleted, remove it
+                    	if (useMainHand) {
+                    		player.getInventory().setItemInMainHand(null);
+                    	} else {
+                    		player.getInventory().setItemInOffHand(null);
+                    	}
                     }
                 }
                 event.setCancelled(true);
