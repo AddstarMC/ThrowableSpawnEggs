@@ -1,9 +1,6 @@
 package com.hawkfalcon.tse.listeners;
 
-import au.com.addstar.monolith.MonoSpawnEgg;
-
 import com.hawkfalcon.tse.Main;
-
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Egg;
@@ -17,21 +14,17 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerEggThrowEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.material.SpawnEgg;
+import org.bukkit.inventory.meta.SpawnEggMeta;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class ListenerStuff implements Listener {
     private Main plugin;
-
     private boolean blackListOn;
     private List<String> blackList;
+    private List<String> throwableBlocks;
 
-    HashMap<Egg, MonoSpawnEgg> eggs = new HashMap<Egg, MonoSpawnEgg>();
+    HashMap<Egg, ItemStack> eggs = new HashMap<>();
 
     static final Set<Material> MainHandIgnore = new HashSet<Material>(
     	Arrays.asList(new Material[] {
@@ -55,12 +48,14 @@ public class ListenerStuff implements Listener {
         plugin = instance;
         this.blackListOn = plugin.getConfig().getBoolean("blacklist");
         this.blackList = plugin.getConfig().getStringList("blacklisted");
+        this.throwableBlocks = plugin.getConfig().getStringList("blockthrow");
+        Material.getMaterial()
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        if (player.hasPermission("tse.use")) {
+        if (player.hasPermission("tse.use")||player.hasPermission("tse.blockthrow")) {
             if ((event.getAction().equals(Action.RIGHT_CLICK_AIR)) || (event.getAction().equals(Action.RIGHT_CLICK_BLOCK))) {
             	// Decide which item to use (prefer main hand over off hand)
             	// We ignore certain items in main hand and use off hand instead
@@ -71,91 +66,76 @@ public class ListenerStuff implements Listener {
             		useMainHand = false;
             	}
             	if ((item == null) || (item.getType() == Material.AIR)) return;
-                if (!(item.getData() instanceof SpawnEgg)) return;
+                if (!(item.getItemMeta() instanceof SpawnEggMeta)){
 
-                // Prepare and launch the egg
-                MonoSpawnEgg mEgg = new MonoSpawnEgg(item);
-                EntityType spawnType;
-                try {
-                    spawnType = mEgg.getMonoSpawnedType();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    spawnType = EntityType.CHICKEN;
-                }
-                if (spawnType == null) return;
-                if (blackListOn && blackList.size() > 0) {
-                    if (blackList.contains(spawnType.getName().toLowerCase())) {
-                        spawnType = EntityType.CHICKEN;
-                        mEgg.setMonoSpawnedType(spawnType);
+                    SpawnEggMeta sMeta = (SpawnEggMeta) item.getItemMeta();
+                    EntityType spawnType = sMeta.getSpawnedType();
+
+                    if (spawnType == null) return;
+                    if (blackListOn && blackList.size() > 0) {
+                        if (blackList.contains(spawnType.getName().toLowerCase())) {
+                            spawnType = EntityType.CHICKEN;
+                        }
+                    }
+                    Egg egg = event.getPlayer().launchProjectile(Egg.class);
+                    sMeta.setSpawnedType(spawnType);
+                    item.setItemMeta(sMeta);
+                    eggs.put(egg, item);
+
+                    // Deplete the relevant item stack
+                    depleteStack(player,item,useMainHand);
+                    event.setCancelled(true);
+                    return;
+                }else{
+                    if(player.hasPermission("tse.blockthrow")){
+                        if(throwableBlocks.contains(item.getType().toString())){
+                            Egg egg = event.getPlayer().launchProjectile(Egg.class);
+                            eggs.put(egg,item);
+                            depleteStack(player,item,useMainHand);
+                            event.setCancelled(true);
+                            return;
+                        }
                     }
                 }
-                Egg egg = event.getPlayer().launchProjectile(Egg.class);
-                eggs.put(egg, mEgg);
-
-                // Deplete the relevant item stack
-                GameMode gm = event.getPlayer().getGameMode();
-                if (gm.equals(GameMode.SURVIVAL) || gm == GameMode.ADVENTURE) {
-                    if (item.getAmount() > 1) {
-                    	// Decrement the item stack quantity
-                        item.setAmount(item.getAmount() - 1);
-                    } else {
-                    	// Spawn egg is depleted, remove it
-                    	if (useMainHand) {
-                    		player.getInventory().setItemInMainHand(null);
-                    	} else {
-                    		player.getInventory().setItemInOffHand(null);
-                    	}
-                    }
-                }
-                event.setCancelled(true);
-                return;
             }
             return;
         }
         event.getPlayer().sendMessage("No Permission to throw eggs");
-        return;
     }
-    //todo Allow eggs to be updated with complete entity.
-    /*@EventHandler
-    public void updateEgg(PlayerInteractEntityEvent event){
-        Player player = event.getPlayer();
-        if (!player.hasPermission("tse.update")) {
-            player.sendMessage("No Permission");
-            return;
-        }
-       ItemStack item =  event.getPlayer().getInventory().getItemInMainHand();
-        if(item.getData() instanceof SpawnEgg){
-            MonoSpawnEgg mEgg = new MonoSpawnEgg(item);
-            if (mEgg.getMonoSpawnedType() == null){
-                Entity entity = event.getRightClicked();
-                if(entity != null) {
-                    if (mEgg.(entity)) {
-                        ItemStack newEgg = mEgg.toItemStack();
-                        newEgg.getItemMeta().setDisplayName("Custom Spawn Egg");
-                        player.getInventory().setItemInMainHand(mEgg.());
-                        player.sendMessage("Your egg has been updated!!!");
-                        entity.remove();
-                        player.playSound(player.getLocation(), Sound.BLOCK_IRON_DOOR_CLOSE, (float) 5.0, (float) 1.0);
-                    }
-                    player.sendMessage("update is false");
+
+    private void depleteStack(Player player, ItemStack item, boolean useMainHand){
+        GameMode gm = player.getGameMode();
+        if (gm.equals(GameMode.SURVIVAL) || gm == GameMode.ADVENTURE) {
+            if (item.getAmount() > 1) {
+                // Decrement the item stack quantity
+                item.setAmount(item.getAmount() - 1);
+            } else {
+                // Spawn egg is depleted, remove it
+                if (useMainHand) {
+                    player.getInventory().setItemInMainHand(null);
+                } else {
+                    player.getInventory().setItemInOffHand(null);
                 }
-                player.sendMessage("entity is null");
             }
-            player.sendMessage("Egg isnt blank");
         }
-        player.sendMessage("Not an egg");
-    }*/
-//todo Spawn complete entity not just the type.
+    }
+
+     //todo Spawn complete entity not just the type.
     @EventHandler()
     public void throwEgg(PlayerEggThrowEvent event) {
         Egg egg = event.getEgg();
         if (eggs.containsKey(egg)) {
-            MonoSpawnEgg mEgg = eggs.get(egg);
-            egg.getLocation();
-            Entity spawn = egg.getWorld().spawnEntity(egg.getLocation(), mEgg.getMonoSpawnedType());
-            if (spawn == null)event.getPlayer().sendMessage("Spawning Error");
-            if(mEgg.getCustomName() != null) spawn.setCustomName(mEgg.getCustomName());
-            spawn.setCustomNameVisible(mEgg.isCustomNameVisible());
+            ItemStack item = eggs.get(egg);
+            if(item.getItemMeta() instanceof SpawnEggMeta) {
+                SpawnEggMeta tEgg = (SpawnEggMeta) item.getItemMeta();
+                egg.getLocation();
+                Entity spawn = egg.getWorld().spawnEntity(egg.getLocation(), tEgg.getSpawnedType());
+                if (spawn == null) event.getPlayer().sendMessage("Spawning Error");
+                if (tEgg.getDisplayName() != null) spawn.setCustomName(tEgg.getDisplayName());
+            }else{
+
+            }
+
             eggs.remove(egg);
             event.setHatching(false);
         }

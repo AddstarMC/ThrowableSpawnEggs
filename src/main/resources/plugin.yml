@@ -1,9 +1,8 @@
 name: ThrowableSpawnEggs
 version: ${plugin.version}
 main: com.hawkfalcon.tse.Main
-description: Makes spawn eggs throwable
+description: ${project.description}
 authors: [hawkfalcon, SirNickParks, Narimm]
-depend: [Monolith]
 permissions:
   tse.use:
     default: true

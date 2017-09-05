@@ -11,6 +11,7 @@
         <plugin.version>${project.version}-${build.number}</plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <github.global.server>github</github.global.server>
+        <spigot.version>1.12.1-R0.1-SNAPSHOT</spigot.version>
     </properties>
     <scm>
         <connection>scm:git:git@github.com:AddstarMC/ThrowableSpawnEggs.git</connection>
@@ -108,12 +109,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.9.4-R0.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>au.com.addstar</groupId>
-            <artifactId>Monolith</artifactId>
-            <version>1.4.2</version>
+            <version>${spigot.version}</version>
         </dependency>
     </dependencies>
 
