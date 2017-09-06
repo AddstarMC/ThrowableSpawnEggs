@@ -11,3 +11,4 @@ The only current permission is `tse.use` which allows assigned groups access
 to throw eggs.
 
 [Maven Generated Site](http://addstarmc.github.io/ThrowableSpawnEggs)
+[JAVADOCS](http://addstarmc.github.io/ThrowableSpawnEggs/apidocs/)
