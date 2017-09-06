@@ -268,23 +268,7 @@ public abstract class AutoConfig
 			onPostLoad();
 			
 			return true;
-		}
-		catch( IOException e )
-		{
-			e.printStackTrace();
-			return false;
-		}
-		catch ( InvalidConfigurationException e )
-		{
-			e.printStackTrace();
-			return false;
-		}
-		catch ( IllegalArgumentException e )
-		{
-			e.printStackTrace();
-			return false;
-		}
-		catch ( IllegalAccessException e )
+		} catch (IOException | IllegalAccessException | IllegalArgumentException | InvalidConfigurationException e)
 		{
 			e.printStackTrace();
 			return false;
@@ -488,16 +472,7 @@ public abstract class AutoConfig
 			writer.write(output);
 			writer.close();
 			return true;
-		}
-		catch ( IllegalArgumentException e )
-		{
-			e.printStackTrace();
-		}
-		catch ( IllegalAccessException e )
-		{
-			e.printStackTrace();
-		}
-		catch ( IOException e )
+		} catch (IllegalArgumentException | IOException | IllegalAccessException e)
 		{
 			e.printStackTrace();
 		}

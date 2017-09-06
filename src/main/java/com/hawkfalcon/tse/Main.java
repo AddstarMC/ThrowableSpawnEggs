@@ -7,19 +7,21 @@ import java.io.File;
 
 public class Main extends JavaPlugin {
 
-    private Config config;
+    public Config config;
 
+    @Override
     public void onEnable() {
         getServer().getPluginManager().registerEvents(new ListenerStuff(this), this);
         this.saveDefaultConfig();
-        config = new Config(this.getConfig());
-
+        File configFile = new File(this.getDataFolder(), "config.yml");
+        config = new Config(configFile);
+        config.load();
     }
 
-    private class Config extends AutoConfig {
-
-        protected Config(File file) {
-            super(file);
-        }
+    @Override
+    public void onDisable() {
+        config.save();
     }
+
+
 }

@@ -2,11 +2,10 @@ package com.hawkfalcon.tse.listeners;
 
 import com.hawkfalcon.tse.Main;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.entity.Egg;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
+import org.bukkit.block.Block;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -21,35 +20,34 @@ import java.util.*;
 public class ListenerStuff implements Listener {
     private Main plugin;
     private boolean blackListOn;
-    private List<String> blackList;
-    private List<String> throwableBlocks;
-
+    private List<EntityType> blackList = new ArrayList<>();
+    private List<Material> throwableBlocks = new ArrayList<>();
     HashMap<Egg, ItemStack> eggs = new HashMap<>();
 
-    static final Set<Material> MainHandIgnore = new HashSet<Material>(
-    	Arrays.asList(new Material[] {
-	    	Material.WOOD_SWORD,
-	    	Material.STONE_SWORD,
-	    	Material.IRON_SWORD,
-	    	Material.DIAMOND_SWORD,
-	    	Material.WOOD_AXE,
-	    	Material.STONE_AXE,
-	    	Material.IRON_AXE,
-	    	Material.DIAMOND_AXE,
-	    	Material.WOOD_PICKAXE,
-	    	Material.STONE_PICKAXE,
-	    	Material.IRON_PICKAXE,
-	    	Material.DIAMOND_PICKAXE,
-	    	Material.IRON_INGOT,
-	    	Material.GOLD_INGOT
-	    }));
+    private final Set<Material> MainHandIgnore = new HashSet<>();
 
     public ListenerStuff(Main instance) {
         plugin = instance;
-        this.blackListOn = plugin.getConfig().getBoolean("blacklist");
-        this.blackList = plugin.getConfig().getStringList("blacklisted");
-        this.throwableBlocks = plugin.getConfig().getStringList("blockthrow");
-        Material.getMaterial()
+        blackListOn = plugin.config.blackList;
+        for (String str : plugin.config.blackListed) {
+            EntityType ent = EntityType.fromName(str);
+            if (ent != null) {
+                blackList.add(ent);
+            }
+        }
+        for (String str : plugin.config.blockThrow) {
+            Material mat = Material.getMaterial(str);
+            if (mat != null) {
+                throwableBlocks.add(mat);
+            }
+        }
+        for (String str : plugin.config.mainHandIgnore) {
+            Material mat = Material.getMaterial(str);
+            if (mat != null) {
+                MainHandIgnore.add(mat);
+            }
+        }
+
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -73,7 +71,7 @@ public class ListenerStuff implements Listener {
 
                     if (spawnType == null) return;
                     if (blackListOn && blackList.size() > 0) {
-                        if (blackList.contains(spawnType.getName().toLowerCase())) {
+                        if (blackList.contains(spawnType)) {
                             spawnType = EntityType.CHICKEN;
                         }
                     }
@@ -88,7 +86,7 @@ public class ListenerStuff implements Listener {
                     return;
                 }else{
                     if(player.hasPermission("tse.blockthrow")){
-                        if(throwableBlocks.contains(item.getType().toString())){
+                        if (throwableBlocks.contains(item.getType()) && item.getType().isBlock()) {
                             Egg egg = event.getPlayer().launchProjectile(Egg.class);
                             eggs.put(egg,item);
                             depleteStack(player,item,useMainHand);
@@ -128,14 +126,25 @@ public class ListenerStuff implements Listener {
             ItemStack item = eggs.get(egg);
             if(item.getItemMeta() instanceof SpawnEggMeta) {
                 SpawnEggMeta tEgg = (SpawnEggMeta) item.getItemMeta();
-                egg.getLocation();
                 Entity spawn = egg.getWorld().spawnEntity(egg.getLocation(), tEgg.getSpawnedType());
-                if (spawn == null) event.getPlayer().sendMessage("Spawning Error");
-                if (tEgg.getDisplayName() != null) spawn.setCustomName(tEgg.getDisplayName());
+                if (spawn == null) {
+                    event.getPlayer().sendMessage("Spawning Error");
+                } else {
+                    if (tEgg.getDisplayName() != null) spawn.setCustomName(tEgg.getDisplayName());
+                }
             }else{
-
+                boolean placed = false;
+                Location loc = egg.getLocation();
+                Block current = loc.getBlock();
+                while (!placed) {
+                    if (current.isEmpty() || current.isLiquid()) {
+                        current.setType(item.getType());
+                        placed = true;
+                    } else {
+                        loc.add(0, 1, 0);
+                    }
+                }
             }
-
             eggs.remove(egg);
             event.setHatching(false);
         }
