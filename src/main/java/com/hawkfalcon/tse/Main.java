@@ -11,11 +11,10 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        getServer().getPluginManager().registerEvents(new ListenerStuff(this), this);
-        this.saveDefaultConfig();
         File configFile = new File(this.getDataFolder(), "config.yml");
         config = new Config(configFile);
         config.load();
+        getServer().getPluginManager().registerEvents(new ListenerStuff(this), this);
     }
 
     @Override
