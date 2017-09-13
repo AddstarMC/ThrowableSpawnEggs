@@ -53,7 +53,7 @@ public class ListenerStuff implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        if (player.hasPermission("tse.use")||player.hasPermission("tse.blockthrow")) {
+        if (player.hasPermission("tse.use") || player.hasPermission("tse.blockthrow")) {
             if ((event.getAction().equals(Action.RIGHT_CLICK_AIR)) || (event.getAction().equals(Action.RIGHT_CLICK_BLOCK))) {
             	// Decide which item to use (prefer main hand over off hand)
             	// We ignore certain items in main hand and use off hand instead
@@ -64,7 +64,7 @@ public class ListenerStuff implements Listener {
             		useMainHand = false;
             	}
             	if ((item == null) || (item.getType() == Material.AIR)) return;
-                if (!(item.getItemMeta() instanceof SpawnEggMeta)){
+                if (item.getItemMeta() instanceof SpawnEggMeta) {
 
                     SpawnEggMeta sMeta = (SpawnEggMeta) item.getItemMeta();
                     EntityType spawnType = sMeta.getSpawnedType();
