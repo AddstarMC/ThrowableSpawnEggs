@@ -86,7 +86,7 @@ public class ListenerStuff implements Listener {
                     return;
                 }else{
                     if(player.hasPermission("tse.blockthrow")){
-                        if (throwableBlocks.contains(item.getType()) && item.getType().isBlock()) {
+                        if (throwableBlocks.contains(item.getType().name().toLowerCase()) && item.getType().isBlock()) {
                             Egg egg = event.getPlayer().launchProjectile(Egg.class);
                             eggs.put(egg,item);
                             depleteStack(player,item,useMainHand);
