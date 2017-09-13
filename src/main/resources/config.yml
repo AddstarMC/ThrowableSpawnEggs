@@ -1,0 +1,6 @@
+blacklist: true
+blacklisted:
+    - ghast
+    - creeper
+blockthrow:
+    - cobblestone

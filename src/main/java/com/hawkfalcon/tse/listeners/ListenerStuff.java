@@ -20,34 +20,34 @@ import java.util.*;
 public class ListenerStuff implements Listener {
     private Main plugin;
     private boolean blackListOn;
-    private List<EntityType> blackList = new ArrayList<>();
-    private List<Material> throwableBlocks = new ArrayList<>();
+    private List<String> blackList;
+    private List<String> throwableBlocks;
+
     HashMap<Egg, ItemStack> eggs = new HashMap<>();
 
-    private final Set<Material> MainHandIgnore = new HashSet<>();
+    static final Set<Material> MainHandIgnore = new HashSet<Material>(
+            Arrays.asList(new Material[]{
+                    Material.WOOD_SWORD,
+                    Material.STONE_SWORD,
+                    Material.IRON_SWORD,
+                    Material.DIAMOND_SWORD,
+                    Material.WOOD_AXE,
+                    Material.STONE_AXE,
+                    Material.IRON_AXE,
+                    Material.DIAMOND_AXE,
+                    Material.WOOD_PICKAXE,
+                    Material.STONE_PICKAXE,
+                    Material.IRON_PICKAXE,
+                    Material.DIAMOND_PICKAXE,
+                    Material.IRON_INGOT,
+                    Material.GOLD_INGOT
+            }));
 
     public ListenerStuff(Main instance) {
         plugin = instance;
-        blackListOn = plugin.config.blackList;
-        for (String str : plugin.config.blackListed) {
-            EntityType ent = EntityType.fromName(str);
-            if (ent != null) {
-                blackList.add(ent);
-            }
-        }
-        for (String str : plugin.config.blockThrow) {
-            Material mat = Material.getMaterial(str);
-            if (mat != null) {
-                throwableBlocks.add(mat);
-            }
-        }
-        for (String str : plugin.config.mainHandIgnore) {
-            Material mat = Material.getMaterial(str);
-            if (mat != null) {
-                MainHandIgnore.add(mat);
-            }
-        }
-
+        this.blackListOn = plugin.getConfig().getBoolean("blacklist");
+        this.blackList = plugin.getConfig().getStringList("blacklisted");
+        this.throwableBlocks = plugin.getConfig().getStringList("blockthrow");
     }
 
     @EventHandler(priority = EventPriority.HIGH)
