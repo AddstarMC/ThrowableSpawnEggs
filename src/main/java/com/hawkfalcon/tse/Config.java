@@ -1,6 +1,7 @@
 package com.hawkfalcon.tse;
 
 import org.bukkit.Material;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.EntityType;
 
 import java.io.File;
@@ -44,37 +45,48 @@ public class Config extends AutoConfig {
         super(file);
     }
 
+    @Override
+    protected void onPostLoad() throws InvalidConfigurationException {
+        if (throwBlocks) {
+            if (blockThrow.size() < 1) {
+                blockThrow.addAll(Collections.singletonList(
+                        Material.COBBLESTONE.name()
+                ));
+            }
+            if (mainHandIgnore.size() < 1) {
+                mainHandIgnore.addAll(
+                        Arrays.asList(Material.WOOD_SWORD.name(),
+                                Material.STONE_SWORD.name(),
+                                Material.IRON_SWORD.name(),
+                                Material.DIAMOND_SWORD.name(),
+                                Material.WOOD_AXE.name(),
+                                Material.STONE_AXE.name(),
+                                Material.IRON_AXE.name(),
+                                Material.DIAMOND_AXE.name(),
+                                Material.WOOD_PICKAXE.name(),
+                                Material.STONE_PICKAXE.name(),
+                                Material.IRON_PICKAXE.name(),
+                                Material.DIAMOND_PICKAXE.name(),
+                                Material.IRON_INGOT.name(),
+                                Material.GOLD_INGOT.name()));
+            }
+            if (blackListed.size() < 1) {
+                blackListed.addAll(Arrays.asList(
+                        EntityType.CREEPER.name(),
+                        EntityType.GHAST.name())
+                );
+            }
+        }
+    }
+
     @ConfigField(name = "blacklist", comment = "if set true will prevent the  use of defined blacklisted spawn eggs")
     public boolean blackList = true;
     @ConfigField(name = "blacklisted", comment = "the mobs that are prevented from being spawned with tse")
-    public List<String> blackListed = new ArrayList<>(
-            Arrays.asList(
-                    EntityType.CREEPER.name(),
-                    EntityType.GHAST.name()
-            )
-    );
+    public ArrayList<String> blackListed = new ArrayList<>();
     @ConfigField(name = "thrownblocks", comment = "Allow Block Throw")
     public boolean throwBlocks = false;
     @ConfigField(name = "throwables", comment = "blocks that can be thrown")
-    public List<String> blockThrow = new ArrayList<>(
-            Collections.singletonList(
-                    Material.COBBLESTONE.name()
-            )
-    );
+    public List<String> blockThrow = new ArrayList<>();
     @ConfigField(name = "main-hand-ignore", comment = "List of Materails that are ignore if in main hand and we will look at offhand")
-    public Set<String> mainHandIgnore = new HashSet<>(
-            Arrays.asList(Material.WOOD_SWORD.name(),
-                    Material.STONE_SWORD.name(),
-                    Material.IRON_SWORD.name(),
-                    Material.DIAMOND_SWORD.name(),
-                    Material.WOOD_AXE.name(),
-                    Material.STONE_AXE.name(),
-                    Material.IRON_AXE.name(),
-                    Material.DIAMOND_AXE.name(),
-                    Material.WOOD_PICKAXE.name(),
-                    Material.STONE_PICKAXE.name(),
-                    Material.IRON_PICKAXE.name(),
-                    Material.DIAMOND_PICKAXE.name(),
-                    Material.IRON_INGOT.name(),
-                    Material.GOLD_INGOT.name()));
+    public Set<String> mainHandIgnore = new HashSet<>();
 }
