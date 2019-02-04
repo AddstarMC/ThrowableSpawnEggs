@@ -2,6 +2,7 @@ name: ThrowableSpawnEggs
 version: ${plugin.version}
 main: com.hawkfalcon.tse.Main
 description: ${project.description}
+api-version: 1.13
 authors: [hawkfalcon, SirNickParks, Narimm]
 permissions:
   tse.use:

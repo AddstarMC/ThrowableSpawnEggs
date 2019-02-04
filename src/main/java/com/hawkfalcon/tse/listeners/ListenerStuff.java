@@ -27,15 +27,15 @@ public class ListenerStuff implements Listener {
 
     static final Set<Material> MainHandIgnore = new HashSet<Material>(
             Arrays.asList(new Material[]{
-                    Material.WOOD_SWORD,
+                    Material.WOODEN_SWORD,
                     Material.STONE_SWORD,
                     Material.IRON_SWORD,
                     Material.DIAMOND_SWORD,
-                    Material.WOOD_AXE,
+                    Material.WOODEN_AXE,
                     Material.STONE_AXE,
                     Material.IRON_AXE,
                     Material.DIAMOND_AXE,
-                    Material.WOOD_PICKAXE,
+                    Material.WOODEN_PICKAXE,
                     Material.STONE_PICKAXE,
                     Material.IRON_PICKAXE,
                     Material.DIAMOND_PICKAXE,
